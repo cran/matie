@@ -15,7 +15,7 @@ explained by another
 \eqn{A} works for multivariate associations as well).
 }
 \usage{
-ma(d,partition,ht,hp,hs)
+ma(d,partition,ht,hp,hs,ufp)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -35,8 +35,12 @@ ma(d,partition,ht,hp,hs)
   }
   \item{hp}{
   power for the hyperbolic correction, default \code{hp = 0.8120818}.
-  }\item{hs}{
+  }
+  \item{hs}{
   scale for the hyperbolic correction, default \code{hs = 6.0049711}.
+  }
+  \item{ufp}{
+  for debugging purposes, default \code{FALSE}.
   }
 }
 \details{
@@ -61,6 +65,9 @@ ma(d,partition,ht,hp,hs)
   }
    
    before the likelihood ratio is re-computed.
+   
+   As the dimension of the data set increases so does the under-estimation
+   of A even with the hyperbolic correction. 
 }
 \value{
   Returns a list of values ...
@@ -76,6 +83,7 @@ ma(d,partition,ht,hp,hs)
   \item{nRows}{n, the number of complete samples in the data set}
   \item{mCols}{m, the number of variables in the data set}
   \item{partition}{user supplied partition for the variables in the data set}
+  \item{ufp}{user supplied debugging flag}
 }
 \references{
 Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
@@ -100,7 +108,7 @@ The data set can be of any dimension.
 \examples{
     # bivariate association
     d <- shpd(n=1000,m=2,Rsq=0.9)
-    ma(d)
+    ma(d)$A
     #
     # multivariate association (the proportion of variance in "Salary"
     # explained by "Hits" and "Years")

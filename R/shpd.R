@@ -1,5 +1,14 @@
 shpd <- function (n,m=2,Rsq=0.7,Ri=0) {
   
+  if (Rsq >= 1.0) {
+    warning('Rsq >=1 not allowed, changing to 0.999')
+    Rsq=0.999
+  }
+  if (Rsq < 0.0) {
+    warning('Rsq < 0.0 not allowed, changing to 0.0')
+    Rsq=0.0
+  }
+  
   ss <- function(vec){
     m <- mean(vec)
     sum((vec-m)*(vec-m))

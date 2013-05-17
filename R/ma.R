@@ -1,5 +1,5 @@
 ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))), 
-                 ht=43.6978644, hp=0.8120818, hs=6.0049711 ){
+                 ht=43.6978644, hp=0.8120818, hs=6.0049711,ufp=FALSE ){
   
     # ht 43.6978644  hp 0.8120818 hs 6.0049711
     # (-1/(ht A + 1) + 1)*(n^hp)/hs
@@ -16,6 +16,19 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))),
     }
     
     # another one
+    logWeightedSum <- function(w,lnl,lal){
+      # we wish to compute weighted sum likelihoods then log them then sum them
+      # sum(sapply(nliVec * weight + liVec * (1-weight),log))
+      # but we are supplied with log likelihoods
+      # so we use the logsum trick on log( w*nli + (1-w)*ali ) 
+      wnl = log(w) + lnl
+      wal = log(1-w) + lal
+      lmax = mapply(max,wnl,wal)
+      lmin = mapply(min,wnl,wal)
+      return( sum( lmax + log1p(exp(lmin-lmax)) ) )
+    }
+    
+    # another one
     getLikeVec <- function(dataSet,kerWidth,loobParam){
       n <- length(dataSet[,1])
       kvec <- c(kerWidth)
@@ -24,14 +37,12 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))),
       six <- order(dataSet[,1])
       ms<-length(dataSet[1,])
       ds <- dataSet[six,]
-      ret <- .C("likelihoodVec", np=as.integer(n), mp=as.integer(ms), 
+      cname <- "loglikelihoodVec"
+      if(ufp) cname <- "ufploglikelihoodVec"
+      ret <- .C(cname, np=as.integer(n), mp=as.integer(ms), 
                 rdp=as.double(ds), kvecp=as.double(kvec), loobp=as.double(loob),
                 liVecp=as.double(liVec))
       liVec <- ret$liVecp[order(six)]
-      # de-bugging
-      # maybe get rid of underflow
-      # liVec <- abs(liVec)
-      # print(paste("liVec[1] = ",toString(liVec[1])))
       return(liVec)
     }
 
@@ -51,36 +62,34 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))),
     # a function to be optimized over kernel width.
     # the fuction returns the likelihood of the null model.
     nullScore <- function(tkw){
-      nliVec <- rep(1.0,times=n)
+      # nliVec <- rep(1.0,times=n)
+      # start at 0 to accumulate in log space
+      nliVec <- rep(0.0,times=n)
       for (j in 1:mp){
         rd1 <- cbind(rd[,partition[[j]]])
-        nliVec <- nliVec * getLikeVec(rd1,tkw,1.0)
-        # print(paste("j = ",toString(j)," nliVec[1] = ",toString(nliVec[1])))
+        # nliVec <- nliVec * getLikeVec(rd1,tkw,1.0)
+        nliVec <- nliVec + getLikeVec(rd1,tkw,1.0) 
       }
-      nullLogLike <- sum(sapply(nliVec,log))
-      # print(paste("tkw = ",toString(tkw)))
-      # print(paste("nullLogLike = ",toString(-nullLogLike)))
+      # nullLogLike <- sum(sapply(nliVec,log))
+      nullLogLike <- sum(nliVec)
       return(-nullLogLike)
     }
   
     # get the optimum kernel width for the null model
     okwl <- 0.01
     okwr <- n / 2
-    # sometimes optimize produces NaN warnings which we will suppress
-    # options(warn=-1)
     opt <- suppressWarnings(
       optimize(f=nullScore,lower=okwl,upper=okwr,tol=0.01,maximum=FALSE))  
-    # options(warn=0)
     nkw <- opt$minimum
     nullLogLike <- -opt$objective
-    # print(paste("nkw = ",toString(nkw)))
-    # print(paste("nullLogLike = ",toString(nullLogLike)))
     
     # make one call to get data likelihood vector at optimal kernel widfths.
-    nliVec <- rep(1.0,times=n)
+    # nliVec <- rep(1.0,times=n)
+    nliVec <- rep(0.0,times=n)
     for (j in 1:mp){
       rd1 <- cbind(rd[,partition[[j]]])
-      nliVec <- nliVec * getLikeVec(rd1,nkw,1.0)
+      # nliVec <- nliVec * getLikeVec(rd1,nkw,1.0)
+      nliVec <- nliVec + getLikeVec(rd1,nkw,1.0)
     }
     
     # a function to be optimized over kernel width and mixture weight.
@@ -90,23 +99,27 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))),
       akw <- 1 + n * v[1] / (40 - 38 * v[1])
       weight <- v[2]
       
-      # make one call to getLikeVec to get likelihood vector for the alternate model
+      # make one call to getLikeVec to get likelihood vector 
+      # for the alternate model
       rd1 <- cbind(rd[,all])
       liVec <- getLikeVec(rd1,akw,1.0)
-      
       # now compute weighted log likelihood of null and alt models
-      wScore <- sum(sapply(nliVec * weight + liVec * (1-weight),log))
+      # wScore <- sum(sapply(nliVec * weight + liVec * (1-weight),log))
+      wScore <- logWeightedSum(weight,nliVec,liVec)
       return(-wScore)
       
     }
   
-    # options(warn=-1)
     # get the optimum kernel width and weight for the alternate model
-    # sometimes produces NaN warnings which we will suppress
-    # options(warn=-1)
-    opt <- suppressWarnings(nmkb(c(0.5,0.5),wllScore,lower=c(0,0),upper=c(1,1),
-                control = list(tol=0.01)))  
-    # options(warn=0)
+    # a good starting point seems to be c(0.9,0.1)
+    # don't let weight go as far as 1 otherwise we loose all the alternate model
+    opt <- suppressWarnings(nmkb(c(0.9,0.1),wllScore,lower=c(0,0),upper=c(1,1),
+                control = list(tol=0.001, restarts.max=10, regsimp=TRUE)))  
+    # issue own warning if nmkb seems to stop prematurely
+    if (opt$feval < 25) 
+      warning('Suspect A value, Nelder Mead terminated after just ',
+              opt$feval,' function evaluations \n',
+              'n = ',n,', dim = ',m)
     fv <- opt$par  
     # recover the optimal parameters
     okw <- 1 + n * fv[1] / (40 - 38 * fv[1])
@@ -123,6 +136,10 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))),
     os <- (1.0 - 1.0/(1.0 + ht * rawA) ) * (n^hp) / hs
     awLogLike <- wLogLike + os 
     Ascore <- 1 - exp(-(2/n)*(awLogLike-nullLogLike))
+    # attempted dimension correction
+    # Ascore <- rawA + (m-1)*(Ascore-rawA)
+    if(Ascore>1.0) Ascore <- 1.0
+    # end of dimension correction
     if(Ascore<0.0) Ascore <- 0.0
   
     # OLD code for applying the loop (leave one out proportion)  
@@ -155,7 +172,8 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))),
     # print(paste("Ascore = ",toString(Ascore)))
 
     rdf = list(A=Ascore,rawA=rawA,jointKW=okw,altLL=wLogLike,nullLL=nullLogLike,
-              marginalKW=nkw,weight=optWeight,LRstat=LRS,nRows=n,mCols=m,partition=partition)
+              marginalKW=nkw,weight=optWeight,LRstat=LRS,
+               nRows=n,mCols=m,partition=partition,ufp=ufp)
 
   return(rdf)
   

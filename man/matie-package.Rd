@@ -26,13 +26,16 @@ and ties are currently broken randomly. Ordinal data can be handled, but the
 properties of \eqn{A} have not been thoroughly investigated for non-continuous 
 data with many ties. 
 \eqn{A} is not currently implemented for category-valued data.
+
+Version 1.2 provides underflow protection to fix a bug that appeared at high dimensions in earlier versions.
+
 }
 \details{
 \tabular{ll}{
 Package: \tab matie\cr
 Type: \tab Package\cr
-Version: \tab 1.1\cr
-Date: \tab 2013-05-17\cr
+Version: \tab 1.2\cr
+Date: \tab 2013-10-11\cr
 License: \tab GPL-3\cr
 }
 }

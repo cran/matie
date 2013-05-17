@@ -4,24 +4,30 @@
 
 
 double kerFunc(double x, double kw){
-    double kerVal = exp(-R_pow_di(x,2)/(2.0*R_pow_di(kw,2)));
+    double kerVal = exp(-R_pow_di(x,(double)2.0)/((double)2.0*R_pow_di(kw,(double)2.0)));
 	return(kerVal);
 }
 
-/* likelihoodVec is the meat of the MATIE package.
+/* loglikelihoodVec is the meat of the MATIE package.
  * It computes a vector of likelioods for the joint model, one for each data point.
- * it is also used to comute likelihoods for the null model by computing a
+ * it is also used to compute likelihoods for the null model by computing a
  * series of joint likelihoods (one for each dependency grouping).
  *
  * The following allows a significant speedup in likelihood computations
  * The routine assumes that the rankData is sorted on the first variable and uses this
- * assumption to compute the liklihood of each data point in rankData.
+ * assumption to compute the likelihood of each data point in rankData.
  * The trick is to progress down rankData, keeping left and right pointers at the
  * bounds of the kernel for the first variable.  All data points in this strip
  * are then considered for accumulating likelihoods.
+ *
+ * likelihoods are accumulated via multiplication and logs are taken at the end
+ * this routine will suffer from underflow when the dimension of the dataset is large
+ * by large we mean m > 9. For underflow protection users should make use of 
+ * a slower version of this routine, ufploglikelihoodVec, where likelihoods
+ * are accumulated in log space
  */
 
-void likelihoodVec(int *nIn, int *mIn, double *rankData, 
+void loglikelihoodVec(int *nIn, int *mIn, double *rankData, 
 		double *kvec, double *loob, double *liVec )
 {
 
@@ -36,7 +42,7 @@ void likelihoodVec(int *nIn, int *mIn, double *rankData,
 	int k, i, j, jj;
 	int kr, kn;
 	kr = (int)(3.0 * kw + 1.0); // kernel radius
-	kn = 2 * kr +1; // kernel width
+	kn = 2 * kr + 1; // kernel diameter
 
     /* compute the 1D kernel */
 	double* ker;
@@ -54,32 +60,8 @@ void likelihoodVec(int *nIn, int *mIn, double *rankData,
     }
     
 	/* compute the height of the 1D kernel at it's centre */
-	double kh = ker[kr];
+	// double kh = ker[kr];
     
-    /* compute accumulated 1D kernel values 
-    double* accKer;
-	accKer = (double *) R_alloc(kn, sizeof(double));
-	sum=0.0;
-	for (i=-kr; i<kr+1; i++){
-		sum += ker[i+kr];
-		accKer[i+kr] = sum;
-	} */
-    
-    // Rprintf(" accKer[%i] = %f",kr,accKer[kr]);
-    
-    /* compute kernel scale factors for each data point 
-    double* scaleFactor;
-    scaleFactor = (double *) R_alloc(n, sizeof(double));
-    for (i=0; i<n; i++){
-        scaleFactor[i]=1.0;
-        for (j=0; j<m; j++){
-            int p = rankData[i+j*n]-1;
-            if(p<kr)scaleFactor[i] /= accKer[kr+p]; 
-            if(p>n-1-kr)scaleFactor[i] /= accKer[kr+n-(p+1)];
-        }
-        // Rprintf(" scaleFactor[%i] = %f",i,scaleFactor[i]);
-    } */
-
 	/* assuming the rankData is sorted on the first coord */
 	int pl=0;
 	int pm=0;
@@ -93,36 +75,135 @@ void likelihoodVec(int *nIn, int *mIn, double *rankData,
 			pl++;
 			xpl = rankData[pl]-1;
 		}
-    /* bug fix: changing && pr<n to && pr<(n-1) */
-		while(xpr-xpm<=kr && pr<(n-1)){
+    /* bug fix: changing while(xpr-xpm<=kr && pr<n) to
+                         while(xpr-xpm<kr && pr<(n-1)) */
+		while(xpr-xpm<kr && pr<(n-1)){
 			pr++;
 			xpr = rankData[pr]-1;
 		}
-		for (j=pl; j<pr; j++){
-            temp = 1.0;
+    /* bug fix: changing j<pr; to j<=pr; */
+		for (j=pl; j<=pr; j++){
+            /* dont accumulate from the pm data point */
+            /* this one is left out */             
+            if(j != pm) {
+                temp = 1.0;
+                for(jj = 0; jj < m; jj++){
+                    int jyp = rankData[j+jj*n]-1;
+                    int ypm = rankData[pm+jj*n]-1;
+                    int yp = jyp-ypm+kr;
+                    if(yp>=0 && yp<kn){
+                        temp = temp * ker[yp];
+                    } else {
+                        temp = 0.0;
+                    }
+                }
+                liVec[pm] += temp; 
+            }
+		}
+		pm++;
+	}
+
+	/* compute loglikelihood on a leave one out basis */
+    double lnm1 = log((double)(n)-lb);
+	for (k=0; k<n; k++){
+		/* liVec[k] = (liVec[k])/((double)(n)-lb); */
+        liVec[k] = log(liVec[k]) - lnm1;
+	}
+		
+}
+
+/* ufploglikelihoodVec is a more understandable version of likelihoodVec 
+ * with no speedup trick. this routine provides underflow protection
+ * by accumulating likelihoods in log space
+ */
+
+void ufploglikelihoodVec(int *nIn, int *mIn, double *rankData, 
+                   double *kvec, double *loob, double *liVec )
+{
+    
+	int n = nIn[0];
+    int m = mIn[0];
+    double lb = loob[0];
+	
+	double kw = kvec[0];
+	
+	double temp, sum;
+    
+	int k, i, j, jj, pm;
+	int kr, kn;
+	kr = (int)(3.0 * kw + 1.0); // kernel radius
+	kn = 2 * kr + 1; // kernel diameter
+    
+    /* compute the 1D kernel */
+	double* ker;
+	ker = (double *) R_alloc(kn, sizeof(double));
+	sum=0.0;
+	for (i=-kr; i<kr+1; i++){
+		temp = kerFunc((double)i,kw);
+		sum += temp;
+		ker[i+kr] = temp;
+	}
+    
+	/* normalize the 1D kernel */ 
+    for (i=0; i<kn; i++){
+        ker[i] /= sum;
+    }
+    
+	/* compute the height of the 1D kernel at it's centre */
+	// double kh = ker[kr];
+    
+    
+	/* assuming nothing */
+    double maxv;
+    double* v;
+	v = (double *) R_alloc(n, sizeof(double));
+	for (pm = 0; pm < n; pm++) {
+        liVec[pm] = 0.0;
+        maxv = -DBL_MAX;
+//        for(j=0; j<n; j++) {
+//            v[j]=0.0
+//        }
+		for (j=0; j<n; j++){
+            int flag = 1;
+            temp = 0.0;
             for(jj = 0; jj < m; jj++){
                 int jyp = rankData[j+jj*n]-1;
                 int ypm = rankData[pm+jj*n]-1;
                 int yp = jyp-ypm+kr;
                 if(yp>=0 && yp<kn){
-                     temp = temp * ker[yp];
+                    if(yp != kr)temp = temp + log(ker[yp]);
                 } else {
-                    temp = 0.0;
+                    flag = 0;
                 }
             }
-            liVec[pm] += temp;  // *scaleFactor[pm];
+            if(flag){
+                v[j]=temp;
+                if(v[j]>maxv){
+                    maxv = v[j];
+                }
+            } else {
+                v[j]=0.0;
+            }
 		}
-		pm++;
+        for(j=0; j<n; j++) {
+            if(v[j]<0.0) {
+                liVec[pm] += exp( v[j] - maxv );
+            }
+        }
+        /* liVec[pm] = exp( maxv + log(liVec[pm]) ); */
+        liVec[pm] = maxv + log(liVec[pm]);         
 	}
-
+    
 	/* compute likelihood on a leave one out basis
-	   at each data point subract the kernel height and 
-	   scale by total distribution - one kernel contribution */
+     at each data point subract the kernel height */
+    double lnm1 = log((double)(n)-lb);
 	for (k=0; k<n; k++){
-		liVec[k] = (liVec[k]-lb*R_pow_di(kh,m) /* *scaleFactor[k] */ )/((double)(n)-lb);
+		/* liVec[k] = (liVec[k])/((double)(n)-lb); */
+        liVec[k] = liVec[k] - lnm1;
 	}
-		
+    
 }
+
 
 /* The next routine computes a distribution on a 2D grid 
  * using a weighted sum of marginal and full kernel heights
