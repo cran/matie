@@ -2,7 +2,7 @@
 \alias{pd}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Plot Density (after an \code{ma} calculation).
+  Plot density (after an \code{ma} calculation).
 }
 \description{
   Optimal kernel widths output by \code{\link{ma}} are employed to 
@@ -34,7 +34,7 @@ pd(d,iv=1,jv=2)
   An n x n  distribution of weighted likelihoods is returned.
 }
 \references{
-  coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
   Ben Murrell, Dan Murrell & Hugh Murrell.

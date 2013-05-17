@@ -2,7 +2,7 @@
 \alias{std}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Generates Sample Trivariate Data set.
+  Generates sample trivariate data set.
 }
 \description{
   This function generates a sample trivariate data set. 
@@ -44,7 +44,7 @@ std(func,xMin,xMax,yMin,yMax,n,Rsq)
   Returns an n x 3 trivariate data set.
 }
 \references{
-  coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

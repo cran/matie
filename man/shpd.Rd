@@ -2,7 +2,7 @@
 \alias{shpd}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Generates Sample HyperPlane Data.
+Generates sample hyperplane data.
 }
 \description{
   This function generates a sample hyperplane data set. 
@@ -37,7 +37,7 @@ shpd(n,m=2,Rsq=0.7,Ri=0)
   Returns a n x m data set
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

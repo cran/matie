@@ -2,7 +2,7 @@
 \alias{spa}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Semi-Partial Association (for a set of 3 variables) 
+Semi-partial association (computes association while controlling for variables)
 }
 \description{
 Computes the semi-partial association between a response variable and 
@@ -43,7 +43,7 @@ spa(Y,X,C)
 }
 
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 
 \author{
@@ -61,24 +61,37 @@ The parameters Y, X and C must be vectors of the same length.
 }
 
 \examples{
-    # Example showing similar behavior of linear and non-linear 
-    # semi-partial associations when the data is truly linear
-    # Y is the response variable, X is the explanatory variable, and C is the control
-    # k is a factor that controls how much of Y is taken from X and how much from C
-    k <- 0.5
-    C = rnorm(1000)
-    X = rnorm(1000)
-    Y = C*(1-k) + X*k + rnorm(1000)*0.1
-
-    # if you have rgl you can plot the data
-    # plot3d(X,C,Y)
-    
-    # compute the semi-partial association
+    # When the association between Y and X is entirely explained by C
+    C <- rnorm(1000)
+    X <- C+rnorm(1000)*0.5
+    Y <- C+rnorm(1000)*0.5
+    # See the relationship without controlling for C
+    ma(cbind(X,Y))$A
+    # See the relationship with C as a covariate (should be close to 0)
     spa(Y,X,C)
-    
-    # if you have ppcor then you can compute the linear semi-partial correlation as well
+    # if you have ppcor then you can verify that 
+    # the linear semi-partial correlation is similar, 
+    # as these associations are all linear
     # spcor.test(Y,X,C)$estimate^2
-
+    #
+    # When the association between Y and X is only partially explained by C
+    C <- rnorm(1000)
+    X <- C+rnorm(1000)*0.5
+    Y <- X+rnorm(1000)*0.5
+    # See the relationship without controlling for C
+    ma(cbind(X,Y))$A
+    # See the relationship with C as a covariate 
+    # (should be lower than the uncontrolled one, but not as low as 0)
+    spa(Y,X,C)
+    # if you have ppcor then you can verify that 
+    # the linear semi-partial correlation is similar, 
+    # as these associations are all linear
+    # spcor.test(Y,X,C)$estimate^2
+    #
+    #   
+    # if you have rgl you can plot the data
+    # library(rgl)
+    # plot3d(X,C,Y)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

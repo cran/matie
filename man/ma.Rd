@@ -2,12 +2,17 @@
 \alias{ma}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Measure Association (for a set of variables) 
+Measure association
 }
 \description{
-A measure of association is computed using a ratio of
-maximum likelihood scores for two distributions, joint and marginal.
-Both likelihoods are maximized independently with respect to their kernel width.
+A non-parametric measure of association between variables. 
+The association score \eqn{A} ranges from 0 (when the variables are independent) 
+to 1 (when they are perfectly associated). 
+\eqn{A} is a kind of \eqn{R^2} estimate, 
+and can be thought of as the proportion of variance in one variable 
+explained by another 
+(or explained by a number of other variables - 
+\eqn{A} works for multivariate associations as well).
 }
 \usage{
 ma(d,partition,ht,hp,hs)
@@ -39,9 +44,10 @@ ma(d,partition,ht,hp,hs)
   using a ratio of 
   maximum likelihoods for the \emph{marginal distribution} and 
   maximum weighted likelihoods for the \emph{joint distribution}.
+  
   Before the computation is carried out the data is ranked using the
   \code{rwt} function from the \code{matie} package.
-  This estimate is usually conservative (ie low) and a hyperbolic 
+  This estimate is usually conservative (ie low) and a small-samples hyperbolic 
   correction is applied by adding an offset, \code{os},
   to the joint likelihood given by:
   
@@ -54,7 +60,7 @@ ma(d,partition,ht,hp,hs)
    \code{os = ( 1 - 1 / (1 + A * ht) ) * ( n ^ (hp) / hs ) }
   }
    
-   before the ratio is re-computed.
+   before the likelihood ratio is re-computed.
 }
 \value{
   Returns a list of values ...
@@ -72,7 +78,7 @@ ma(d,partition,ht,hp,hs)
   \item{partition}{user supplied partition for the variables in the data set}
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.
@@ -92,12 +98,14 @@ The data set can be of any dimension.
 }
 
 \examples{
+    # bivariate association
     d <- shpd(n=1000,m=2,Rsq=0.9)
     ma(d)
     #
-    # see shpd (link above) for examples on how to use 
-    # partition parameter for higher dimensional data sets.
-    #
+    # multivariate association (the proportion of variance in "Salary"
+    # explained by "Hits" and "Years")
+    data(baseballData)
+    ma(baseballData,partition=list(11,c(2,7)))$A
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

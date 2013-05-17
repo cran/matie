@@ -2,12 +2,12 @@
 \alias{ma.test}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-P value for an association score.
+p-value for an association score.
 }
 \description{
-  This function computes a p value for an association score
-  using interpolation (fast - only available for the bivariate case) 
-  or a permutation test.
+  This function computes the p-value for an association score using 
+  interpolation from a precomputed table 
+  (fast - only available for the bivariate case) or using a permutation test.
 }
 \usage{
 ma.test(d, maStruct, permPartition, lookup, reps)
@@ -27,11 +27,11 @@ ma.test(d, maStruct, permPartition, lookup, reps)
     Defaults to the partition returned by the call to \code{\link{ma}}.
   }
   \item{lookup}{
-    logical, if TRUE then a p value is interpolated from a table of
-    precomputed p values. If FALSE then a monte carlo simulation is
-    carried out. Table lookup is only valid for associations on 
-    bivariate data with number of samples <= 400. By default, lookup
-    is TRUE.
+    logical, if TRUE then a p-value is interpolated from a table of 
+    precomputed p-values. 
+    If FALSE then a monte carlo simulation is carried out. 
+    Table lookup is only accurate for associations on bivariate data 
+    with number of samples <= 400. By default, lookup is TRUE.
   }
   \item{reps}{
     no of repeats for the monte carlo simulation.
@@ -47,7 +47,7 @@ ma.test(d, maStruct, permPartition, lookup, reps)
   Returns a real number in the range [0,1].
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

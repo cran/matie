@@ -21,15 +21,19 @@ fdg <- function(dataSet, dataName=NULL, method="A", cutoff=0.1, dim=2){
   gr <- graph.adjacency(as.matrix(adj), weighted=TRUE,  mode="upper")
   
   # color the largest cliques green
-  V(gr)$color <- "LightBlue"
-  V(gr)[unlist(largest.cliques(gr))]$color <- "LightGreen"
+  gr <- set.vertex.attribute(gr, "color", index=V(gr), "LightBlue")
+  gr <- set.vertex.attribute(gr, "color", index=unlist(largest.cliques(gr)), "LightGreen")
   
   if (dim == 2) {
-    V(gr)$label <- V(gr)$name
-    E(gr)$label <- round(100*E(gr)$weight,0)
+    gr <- set.vertex.attribute(gr, "label", index=V(gr), V(gr)$name)
+    gr <- set.edge.attribute(gr, "label", index=E(gr), round(100*E(gr)$weight))
+    gr <- set.edge.attribute(gr, "width", index=E(gr), 10 * E(gr)$weight)
   } else {
-    V(gr)$label <- paste("   ",V(gr)$name,sep=" ")
-    V(gr)$label.color <- "white"
+    gr <- set.vertex.attribute(gr, "label", index=V(gr), paste("   ",V(gr)$name,sep=" "))
+    gr <- set.vertex.attribute(gr, "label.color", index=V(gr), "white")
+    # the following causes subscript out of bounds in rglplot.igraph
+    # gr <- set.edge.attribute(gr, "label", index=E(gr), round(100*E(gr)$weight))
+    gr <- set.edge.attribute(gr, "width", index=E(gr), 10 * E(gr)$weight)
   }
   
   # layout <- layout.fruchterman.reingold(gr,dim=dim,coolexp=1)
@@ -40,7 +44,7 @@ fdg <- function(dataSet, dataName=NULL, method="A", cutoff=0.1, dim=2){
   main <- paste(main,"cutoff ~",100*cutoff,"%")
   
   if(dim == 2) {
-    plot(gr, layout=layout, main=main)
+    plot.igraph(gr, layout=layout, main=paste("new",main))
   } else {
     rglplot(gr, layout=layout)
   }

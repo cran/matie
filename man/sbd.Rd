@@ -2,7 +2,7 @@
 \alias{sbd}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Generates Sample Bivariate Data.
+  Generates sample bivariate data.
 }
 \description{
   This function generates a sample bivariate data set. 
@@ -38,7 +38,7 @@ sbd(func,min,max,n,Rsq)
   Returns an n x 2 bivariate data set
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

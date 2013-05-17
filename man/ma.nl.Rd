@@ -2,8 +2,7 @@
 \alias{ma.nl}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Calculates nonlinear preportion of variance between one variable
-  and a group of variables.
+  Calculates degree of nonlinearity for a particular association score.
 }
 \description{
   This function estimates nonlinear proportion of variance between one variable
@@ -50,7 +49,7 @@ ma.nl(Y, X)
   }
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

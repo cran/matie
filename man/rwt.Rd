@@ -2,7 +2,7 @@
 \alias{rwt}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Rank With Ties 
+Rank with ties 
 }
 \description{
   This function replaces variable values in a data set with their ranks,

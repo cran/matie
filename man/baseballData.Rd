@@ -1,7 +1,7 @@
 \name{baseballData}
 \docType{data}
 \alias{baseballData}
-\title{Baseball player performance and pay dataset}
+\title{Baseball player performance and income dataset}
 \description{
   This data set is a collection of performance statistics 
   for a collection of baseball players including a \code{Salary} variable.

@@ -7,20 +7,20 @@
 # Code for plotting ellipses was derived from the ellipse package.
 # Additional ideas from the plot.corr function in the 'arm' package.
 
-# To do: Add a legend/ribbon
-
-agram <- function (dataSet, amat=NULL, method="pearson", ranking=FALSE, order=FALSE, ...) {
+agram <- function (dataSet, method="pearson", ranking=FALSE, order=FALSE, ...) {
    
   textPanel <- function(x = 0.5, y = 0.5, txt, cex, font, srt) {
     text(x, y, txt, cex=cex, font=font, srt=srt)
   }
   
-  localRank <- function(v) {
-    if (ranking) 
-      return(rwt(v))
-    else
-      return(v)
-  }
+#   localRank <- function(v) {
+#     if (ranking) 
+#       return(rwt(v))
+#     else
+#       return(v)
+#   }
+#  
+#  replaced by ........... if (ranking) dataSet <- rwt(dataSet)
   
   localAxis <- function(side, x, y, xpd, bg, col=NULL, main, oma, ...) {
     ## Explicitly ignore any color argument passed in as
@@ -60,7 +60,8 @@ agram <- function (dataSet, amat=NULL, method="pearson", ranking=FALSE, order=FA
                               include.lowest=TRUE))
     col.pts <- pal[col.ind]
     
-    plot.xy(xy.coords(localRank(x),localRank(y)), type="p", col=col.pts,...)
+    # plot.xy(xy.coords(localRank(x),localRank(y)), type="p", col=col.pts,...)
+    plot.xy(xy.coords(x,y), type="p", col=col.pts,...)
     box(col="lightgray")
   }
   
@@ -103,8 +104,10 @@ agram <- function (dataSet, amat=NULL, method="pearson", ranking=FALSE, order=FA
     
   }
   
-  
   # end of helper functions main code starts now
+  
+  # rank up front if asked to
+  if (ranking) dataSet <- data.frame(rwt(dataSet))
   
   # remember par settings that could be changed
   old.par <- par(no.readonly = TRUE) 
@@ -138,10 +141,8 @@ agram <- function (dataSet, amat=NULL, method="pearson", ranking=FALSE, order=FA
 
   # x <- rwt(x)
   
-  # if not supplied, calculate the association matrix
-  if(is.null(amat)){
-    amat <- tap(x)
-  } 
+  # calculate the association matrix
+  amat <- tap(x) 
   
   # make sure amat is positive
   amat <- abs(amat)
@@ -200,7 +201,9 @@ agram <- function (dataSet, amat=NULL, method="pearson", ranking=FALSE, order=FA
   for (i in 1:nc)
     for (j in 1:nc) {
       # start a plot but do nothing
-      localPlot(localRank(x[, j]), localRank(x[, i]), xlab = "", ylab = "",
+      # localPlot(localRank(x[, j]), localRank(x[, i]), xlab = "", ylab = "",
+      #           axes = FALSE, type = "n", ...)
+      localPlot(x[, j], x[, i], xlab = "", ylab = "",
                 axes = FALSE, type = "n", ...)
       # print(paste("i=",toString(i),", j=",toString(j)))
         if(i == j) {

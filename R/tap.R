@@ -15,7 +15,7 @@ tap <- function(dataSet,one=NULL){
       if(is.null(one)){
         d <- data.frame(V1=dataSet[,i],V2=dataSet[,j])
       }else{
-        d <- data.frame(V0=z,V1=dataSet[,i],V2=dataSet[,j])
+        d <- data.frame(V1=dataSet[,i],V2=dataSet[,j],V3=z)
       }     
       dok <- d[complete.cases(d),]
       if(length(dok[,1])>10){

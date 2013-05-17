@@ -1,4 +1,4 @@
-ma <-   function(d, partition=list(c(length(d[1,])),c(1:length(d[1,])-1)), 
+ma <-   function(d, partition=list(c(length(d[1,])),c(1:(length(d[1,])-1))), 
                  ht=43.6978644, hp=0.8120818, hs=6.0049711 ){
   
     # ht 43.6978644  hp 0.8120818 hs 6.0049711
@@ -28,6 +28,9 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:length(d[1,])-1)),
                 rdp=as.double(ds), kvecp=as.double(kvec), loobp=as.double(loob),
                 liVecp=as.double(liVec))
       liVec <- ret$liVecp[order(six)]
+      # de-bugging
+      # maybe get rid of underflow
+      # liVec <- abs(liVec)
       # print(paste("liVec[1] = ",toString(liVec[1])))
       return(liVec)
     }
@@ -63,7 +66,11 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:length(d[1,])-1)),
     # get the optimum kernel width for the null model
     okwl <- 0.01
     okwr <- n / 2
-    opt <- optimize(f=nullScore,lower=okwl,upper=okwr,tol=0.01,maximum=FALSE)    
+    # sometimes optimize produces NaN warnings which we will suppress
+    # options(warn=-1)
+    opt <- suppressWarnings(
+      optimize(f=nullScore,lower=okwl,upper=okwr,tol=0.01,maximum=FALSE))  
+    # options(warn=0)
     nkw <- opt$minimum
     nullLogLike <- -opt$objective
     # print(paste("nkw = ",toString(nkw)))
@@ -86,7 +93,7 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:length(d[1,])-1)),
       # make one call to getLikeVec to get likelihood vector for the alternate model
       rd1 <- cbind(rd[,all])
       liVec <- getLikeVec(rd1,akw,1.0)
-
+      
       # now compute weighted log likelihood of null and alt models
       wScore <- sum(sapply(nliVec * weight + liVec * (1-weight),log))
       return(-wScore)
@@ -95,8 +102,11 @@ ma <-   function(d, partition=list(c(length(d[1,])),c(1:length(d[1,])-1)),
   
     # options(warn=-1)
     # get the optimum kernel width and weight for the alternate model
-    opt <- nmkb(c(0.5,0.5),wllScore,lower=c(0,0),upper=c(1,1),
-                control = list(tol=0.01))   
+    # sometimes produces NaN warnings which we will suppress
+    # options(warn=-1)
+    opt <- suppressWarnings(nmkb(c(0.5,0.5),wllScore,lower=c(0,0),upper=c(1,1),
+                control = list(tol=0.01)))  
+    # options(warn=0)
     fv <- opt$par  
     # recover the optimal parameters
     okw <- 1 + n * fv[1] / (40 - 38 * fv[1])

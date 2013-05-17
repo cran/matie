@@ -2,7 +2,8 @@
 \alias{fbvs}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Forwards, backwards variable selection. 
+Forwards, backwards variable selection, 
+picking variables to maximize explained variance.
 }
 \description{
 Attempts to find the best explanatory set of variables to explain a single variable in
@@ -48,7 +49,7 @@ fbvs(dataSet,one,maxv,linear)
   }
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

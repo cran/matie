@@ -2,7 +2,7 @@
 \alias{tap}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Test All Pairs (for nonlinear association). 
+Test all pairs (computes association score for all pairs of variables).
 }
 \description{
 Tries all pairs in an n x m user supplied data set (n observations of m variables).
@@ -30,7 +30,7 @@ tap(dataSet,one)
   Returns a square data frame.
 }
 \references{
-  coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.

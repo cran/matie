@@ -31,10 +31,10 @@ void likelihoodVec(int *nIn, int *mIn, double *rankData,
 	
 	double kw = kvec[0];
 	
-	double temp, temq, sum, ovf;
+	double temp, sum;
 
 	int k, i, j, jj;
-	int kr, kn, an;
+	int kr, kn;
 	kr = (int)(3.0 * kw + 1.0); // kernel radius
 	kn = 2 * kr +1; // kernel width
 
@@ -93,7 +93,8 @@ void likelihoodVec(int *nIn, int *mIn, double *rankData,
 			pl++;
 			xpl = rankData[pl]-1;
 		}
-		while(xpr-xpm<=kr && pr<n){
+    /* bug fix: changing && pr<n to && pr<(n-1) */
+		while(xpr-xpm<=kr && pr<(n-1)){
 			pr++;
 			xpr = rankData[pr]-1;
 		}
@@ -145,7 +146,7 @@ void getDistribution(int *nIn, int *rankData,
     
     double w = weight[0];
 	
-	double temp, temq, sum, ovf;
+	double temp, sum;
     
 	int k, i, j;
 

@@ -2,13 +2,12 @@
 \alias{fdg}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Force Directed Graph from all pairs association.
+Force directed graph visualization of associations between all pairs of variables.
 }
 \description{
-Constructs and draws a force directed graph using all pairs
-association matrix to drive attraction in the graph.
-This adjacency matrix can represent linear or non-linear
-associations.
+Constructs and draws a force directed graph using an "all pairs" association 
+matrix to drive attraction in the graph. This adjacency matrix can represent 
+linear or non-linear associations.
 }
 \usage{
 fdg(dataSet, dataName, method, cutoff, dim)
@@ -43,7 +42,7 @@ fdg(dataSet, dataName, method, cutoff, dim)
   Returns nothing.
 }
 \references{
-coming soon
+Discovering general multidimensional associations, \url{http://arxiv.org/abs/1303.1828}
 }
 \author{
 Ben Murrell, Dan Murrell & Hugh Murrell.
